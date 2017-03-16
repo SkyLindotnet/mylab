@@ -148,6 +148,6 @@ def fcn_3d(fg):
     fig = figure()
     X,Y = np.meshgrid(np.linspace(0,fg.shape[1],fg.shape[1]),np.linspace(0,fg.shape[0],fg.shape[0]))
     ax = fig.gca(projection='3d')
-    surf = ax.plot_surface(X, Y, fg, cmap=cm.coolwarm, linewidth=0, antialiased=False)
+    surf = ax.plot_surface(X, Y, fg, cmap=cm.hot, linewidth=0, antialiased=False)
     fig.colorbar(surf, shrink=0.5, aspect=5)
     plt.show()
