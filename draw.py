@@ -11,14 +11,42 @@ from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
 
 
+def __get_ellipse_points(major, minor, angle, x, y):
+    pts = np.zeros((721, 2))  # 721 xy-points
+    # beta = -angle*np.pi/180.0
+    beta = angle
+    sin_beta = np.sin(beta)
+    cos_beta = np.cos(beta)
+    alpha = np.radians(np.r_[0.0:360.0:1j * (721)])
+    sin_alpha = np.sin(alpha)
+    cos_alpha = np.cos(alpha)
+    pts[:, 0] = x + (major * cos_alpha * cos_beta - minor * sin_alpha * sin_beta)
+    pts[:, 1] = y + (major * cos_alpha * sin_beta + minor * sin_alpha * cos_beta)
 
-def draw_bbox(subplot, im, bboxes,color='cyan',linewidth=2):
+    return pts
+
+def ellipse2box(major, minor, angle, x, y):
+    pts = __get_ellipse_points(major, minor, angle, x, y)
+    xs = pts[:,0]
+    ys = pts[:,1]
+    return [xs.min(), ys.min(), xs.max(), ys.max()]
+
+def draw_ellipse(subplot, elipses, color='b', linewidth=3):
+    elipses = np.array(elipses)
+    if len(elipses.shape) == 1: elipses = np.array([elipses])
+    for e in elipses:
+        pts = __get_ellipse_points(*e)
+        subplot.plot(pts[:, 0], pts[:, 1], '{}'.format(color))
+
+
+def draw_bbox(subplot, bboxes,color='cyan',linewidth=2):
     #bbox: xmin, ymin, xmax, ymax
     #
-    imshow(im)
+
+    bboxes = np.array(bboxes)
+    if len(bboxes.shape) == 1: bboxes = np.array([bboxes])
     for b in bboxes:
-        x=b[0]
-        y=b[1]
+        x=b[0]; y=b[1]
         w=b[2]-x
         h=b[3]-y
         subplot.add_patch(patches.Rectangle(
