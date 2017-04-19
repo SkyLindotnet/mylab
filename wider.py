@@ -8,7 +8,26 @@ import os,sys
 
 def get_wider_img(num=1, imgread=True,usePIL=True, setname='all'):
     #set: all/train/test/val/
-    
+    '''
+
+    :param num:
+        Number of images required:
+            if give 1: return a single image
+            if > 1 : return a list of image
+    :param imgread:
+        Read the image or just return the image path
+        if imgread: return an opened image
+        if not imgread: return a image path
+    :param usePIL:
+        The way to open image:
+            if usePIL: read image using PIL.Image.open
+            if not usePIL: read image using pylab.imread
+    :param setname:
+        From which set of wider set to get images:
+            in ['all','train','test','val']
+    :return:
+        Either opened image(s) or just image path(s)
+    '''
     allfile = '/home/rick/Documents/Models/WIDER_FACE/unzips/imgpath/all.txt'
     trainfile ='/home/rick/Documents/Models/WIDER_FACE/unzips/imgpath/train.txt'
     testfile='/home/rick/Documents/Models/WIDER_FACE/unzips/imgpath/test.txt'

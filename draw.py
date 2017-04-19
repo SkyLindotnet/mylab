@@ -12,6 +12,15 @@ from matplotlib.ticker import LinearLocator, FormatStrFormatter
 
 
 def __get_ellipse_points(major, minor, angle, x, y):
+    '''
+
+    :param major: ellipse major value (half)
+    :param minor: ellipse major value (half)
+    :param angle: not in degree. If in degree, convert it by: -angle*np.pi/180.0
+    :param x: center x
+    :param y: center y
+    :return: set of points with shape<721,2>
+    '''
     pts = np.zeros((721, 2))  # 721 xy-points
     # beta = -angle*np.pi/180.0
     beta = angle
@@ -26,12 +35,31 @@ def __get_ellipse_points(major, minor, angle, x, y):
     return pts
 
 def ellipse2box(major, minor, angle, x, y):
+    '''
+
+    :param major: ellipse major value (half)
+    :param minor: ellipse major value (half)
+    :param angle: not in degree. If in degree, convert it by: -angle*np.pi/180.0
+    :param x: center x
+    :param y: center y
+    :return: list type: [xmin, ymin, xmax, ymax]
+    '''
     pts = __get_ellipse_points(major, minor, angle, x, y)
     xs = pts[:,0]
     ys = pts[:,1]
     return [xs.min(), ys.min(), xs.max(), ys.max()]
 
 def draw_ellipse(subplot, elipses, color='b', linewidth=3):
+    '''
+
+    :param subplot: a subplot
+    :param elipses:
+        ellipses in "major, minor, angle, x, y" order
+        expecting a list with length 5; OR a np.array with shape <n,5>
+    :param color: line color
+    :param linewidth: line width
+    :return:
+    '''
     elipses = np.array(elipses)
     if len(elipses.shape) == 1: elipses = np.array([elipses])
     for e in elipses:
@@ -42,7 +70,16 @@ def draw_ellipse(subplot, elipses, color='b', linewidth=3):
 def draw_bbox(subplot, bboxes,color='cyan',linewidth=2):
     #bbox: xmin, ymin, xmax, ymax
     #
+    '''
 
+    :param subplot:  a subplot
+    :param bboxes:
+        bounding boxes in "xmin, ymin, xmax, ymax" order
+        expecting a list with length 4; OR a np.array with shape <n,4>
+    :param color: line color
+    :param linewidth: line width
+    :return:
+    '''
     bboxes = np.array(bboxes)
     if len(bboxes.shape) == 1: bboxes = np.array([bboxes])
     for b in bboxes:
@@ -59,6 +96,16 @@ def draw_bbox(subplot, bboxes,color='cyan',linewidth=2):
         ))
 
 def fcn_color_map(im,fg,bg,out,LA=1,RA=0): #left alpha/right alpha
+    '''
+
+    :param im: an opened original image, assuming it has shape <A,B>
+    :param fg: foreground heatmap with shape <A,B>
+    :param bg: background heatmap with shape <A,B>
+    :param out: argmaxed mask with shape <A,B>
+    :param LA: alpha value of the image [0,1]==>[nothing, no-alpha]
+    :param RA: alpha value of masks [0,1]==>[nothing, no-alpha]
+    :return:
+    '''
     out = out[...,np.newaxis]
     out = np.tile(out, (1,1,3))
     w = fg.shape[1]; h = fg.shape[0]
@@ -85,6 +132,12 @@ def fcn_color_map(im,fg,bg,out,LA=1,RA=0): #left alpha/right alpha
 
 
 def fcn_3d(fg,figsize=(9,9)):
+    '''
+
+    :param fg: foreground heatmap with shape <A,B>
+    :param figsize: figure size, a tuple, default (9,9)
+    :return:
+    '''
     fig = figure(figsize=figsize)
     X,Y = np.meshgrid(np.linspace(0,fg.shape[1],fg.shape[1]),np.linspace(0,fg.shape[0],fg.shape[0]))
     ax = fig.gca(projection='3d')
