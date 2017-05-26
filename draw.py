@@ -3,7 +3,7 @@ from pylab import *
 import matplotlib.patches as patches
 import numpy.random as npr
 from PIL import Image
-import os,sys
+import os, sys
 
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
@@ -34,6 +34,7 @@ def __get_ellipse_points(major, minor, angle, x, y):
 
     return pts
 
+
 def ellipse2box(major, minor, angle, x, y):
     '''
 
@@ -45,9 +46,10 @@ def ellipse2box(major, minor, angle, x, y):
     :return: list type: [xmin, ymin, xmax, ymax]
     '''
     pts = __get_ellipse_points(major, minor, angle, x, y)
-    xs = pts[:,0]
-    ys = pts[:,1]
+    xs = pts[:, 0]
+    ys = pts[:, 1]
     return [xs.min(), ys.min(), xs.max(), ys.max()]
+
 
 def draw_ellipse(subplot, elipses, color='b', linewidth=3):
     '''
@@ -67,8 +69,8 @@ def draw_ellipse(subplot, elipses, color='b', linewidth=3):
         subplot.plot(pts[:, 0], pts[:, 1], '{}'.format(color))
 
 
-def draw_bbox(subplot, bboxes,color='cyan',linewidth=2):
-    #bbox: xmin, ymin, xmax, ymax
+def draw_bbox(subplot, bboxes, color='cyan', linewidth=2, alpha=1, with_conf=False, fontcolor=None):
+    # bbox: xmin, ymin, xmax, ymax
     #
     '''
 
@@ -80,22 +82,41 @@ def draw_bbox(subplot, bboxes,color='cyan',linewidth=2):
     :param linewidth: line width
     :return:
     '''
+
     bboxes = np.array(bboxes)
+    if with_conf and bboxes.shape[1] != 5:
+        print '[!] Did not find the 5th dimension for confidence score, disabled'
+        with_conf = False
     if len(bboxes.shape) == 1: bboxes = np.array([bboxes])
     for b in bboxes:
-        x=b[0]; y=b[1]
-        w=b[2]-x
-        h=b[3]-y
+        x = b[0];
+        y = b[1]
+        w = b[2] - x
+        h = b[3] - y
         subplot.add_patch(patches.Rectangle(
-            (x,y),   # (x,y)
-            w,          # width
-            h,          # height
-        fill = 0,
-        edgecolor=color,
-        linewidth = linewidth
+            (x, y),  # (x,y)
+            w,  # width
+            h,  # height
+            fill=0,
+            edgecolor=color,
+            linewidth=linewidth,
+            alpha=alpha
         ))
+        if with_conf:
+            score = b[4]
+            score = '{:.2f}'.format(score)
+            fontsize = (w+h)/10
+            if fontcolor is None: fontcolor = color
+            subplot.text((b[0] + b[2]) / 2, b[3] + fontsize / 2, score,
+                         horizontalalignment='center',
+                         verticalalignment='center',
+                         color=fontcolor,
+                         fontsize=fontsize,
+                         alpha=alpha,
+                         bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': log(w + h)})
 
-def fcn_color_map(im,fg,bg,out,LA=1,RA=0): #left alpha/right alpha
+
+def fcn_color_map(im, fg, bg, out, LA=1, RA=0):  # left alpha/right alpha
     '''
 
     :param im: an opened original image, assuming it has shape <A,B>
@@ -106,32 +127,55 @@ def fcn_color_map(im,fg,bg,out,LA=1,RA=0): #left alpha/right alpha
     :param RA: alpha value of masks [0,1]==>[nothing, no-alpha]
     :return:
     '''
-    out = out[...,np.newaxis]
-    out = np.tile(out, (1,1,3))
-    w = fg.shape[1]; h = fg.shape[0]
-    min_max = lambda x: ((x-x.min())/(x.max()-x.min()))
+    out = out[..., np.newaxis]
+    out = np.tile(out, (1, 1, 3))
+    w = fg.shape[1];
+    h = fg.shape[0]
+    min_max = lambda x: ((x - x.min()) / (x.max() - x.min()))
     fg = min_max(fg)
     bg = min_max(bg)
-    if w > h: f = figure(figsize=(16,27))
-    else: f = figure(figsize=(9,32))
-    #----------------------#
-    f.add_subplot(521);imshow(fg);title('FG')
-    f.add_subplot(522);imshow(im,alpha=LA);imshow(fg,alpha=RA)
-    #----------------------#
-    f.add_subplot(523);imshow(bg);title('BG')
-    f.add_subplot(524);imshow(im,alpha=LA);imshow(bg,alpha=RA)
-	#----------------------#
-    f.add_subplot(525);imshow(fg-bg);title('FG-BG')
-    f.add_subplot(526);imshow(im,alpha=LA);imshow(fg-bg,alpha=RA)
-    #----------------------#
-    f.add_subplot(527);imshow(out);title('ArgMax')
-    f.add_subplot(528);imshow(im,alpha=LA);imshow(out,alpha=RA)
-	#----------------------#
-    f.add_subplot(529);imshow(fg+bg);title('FG+BG')
-    f.add_subplot(5,2,10);imshow(im,alpha=LA);imshow(fg+bg,alpha=RA)
+    if w > h:
+        f = figure(figsize=(16, 27))
+    else:
+        f = figure(figsize=(9, 32))
+    # ----------------------#
+    f.add_subplot(521);
+    imshow(fg);
+    title('FG')
+    f.add_subplot(522);
+    imshow(im, alpha=LA);
+    imshow(fg, alpha=RA)
+    # ----------------------#
+    f.add_subplot(523);
+    imshow(bg);
+    title('BG')
+    f.add_subplot(524);
+    imshow(im, alpha=LA);
+    imshow(bg, alpha=RA)
+    # ----------------------#
+    f.add_subplot(525);
+    imshow(fg - bg);
+    title('FG-BG')
+    f.add_subplot(526);
+    imshow(im, alpha=LA);
+    imshow(fg - bg, alpha=RA)
+    # ----------------------#
+    f.add_subplot(527);
+    imshow(out);
+    title('ArgMax')
+    f.add_subplot(528);
+    imshow(im, alpha=LA);
+    imshow(out, alpha=RA)
+    # ----------------------#
+    f.add_subplot(529);
+    imshow(fg + bg);
+    title('FG+BG')
+    f.add_subplot(5, 2, 10);
+    imshow(im, alpha=LA);
+    imshow(fg + bg, alpha=RA)
 
 
-def fcn_3d(fg,figsize=(9,9)):
+def fcn_3d(fg, figsize=(9, 9)):
     '''
 
     :param fg: foreground heatmap with shape <A,B>
@@ -139,7 +183,7 @@ def fcn_3d(fg,figsize=(9,9)):
     :return:
     '''
     fig = figure(figsize=figsize)
-    X,Y = np.meshgrid(np.linspace(0,fg.shape[1],fg.shape[1]),np.linspace(0,fg.shape[0],fg.shape[0]))
+    X, Y = np.meshgrid(np.linspace(0, fg.shape[1], fg.shape[1]), np.linspace(0, fg.shape[0], fg.shape[0]))
     ax = fig.gca(projection='3d')
     surf = ax.plot_surface(X, Y, fg, cmap=cm.hot, linewidth=0, antialiased=False)
     fig.colorbar(surf, shrink=0.5, aspect=5)
